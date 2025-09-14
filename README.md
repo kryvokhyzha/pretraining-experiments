@@ -11,7 +11,7 @@
 ## 📖 About
 
 > [!IMPORTANT]
-> This is just research code written for fun over a few hours over a glass of beer.
+> This is just research code written for fun over a few hours over a glass of beer🍻
 
 This repository contains my personal **experiments with LLM pretraining**,
 specifically focused on pretraining **Gemma 3 270M** models on Ukrainian text
@@ -35,9 +35,9 @@ data using the Kobza dataset.
 1. **Set up environment variables**:
 
    ```bash
-   # Create .env file with your Hugging Face token
-   echo "HF_TOKEN=your_huggingface_token_here" > .env
-   echo "PROJECT_NAME=gemma-pretraining" >> .env
+   # Copy the example environment file and fill in your credentials
+   cp .env.example .env
+   # Edit .env file to add your Hugging Face token and other settings
    ```
 
 2. **Prepare data and run a test experiment**:
@@ -106,16 +106,16 @@ make pre_commit_install       # Install code quality hooks
 
 # Run experiments
 make run_load_subsample       # Prepare sample data
-make run_ids_prep            # Prepare token freezing data
-make run_test_pretraining    # Quick test experiment
-make run_pretraining         # Full experiment
+make run_ids_prep             # Prepare token freezing data
+make run_test_pretraining     # Quick test experiment
+make run_pretraining          # Full experiment
 ```
 
 ---
 
 ## ⚙️ Development Environment Setup
 
-> [!WARNING] 
+> [!WARNING]
 > This project is based on `Python 3.13` and uses `uv` for dependency management.
 
 1. Clone the repository:
@@ -145,7 +145,7 @@ make run_pretraining         # Full experiment
 1. Install dependencies:
 
    ```bash
-   uv sync --all-extras --no-install-project -U
+   uv sync --no-install-project -U
    ```
 
 1. Setup pre-commit hooks:
@@ -165,7 +165,8 @@ make run_pretraining         # Full experiment
 token:
 
 ```bash
-echo "HF_TOKEN=your_token_here" > .env
+cp .env.example .env
+# Then edit .env to add your actual HF_TOKEN value
 ```
 
 **Problem**: Out of memory during training  

@@ -11,23 +11,15 @@ from src.helper.logging import logger
 class SageMakerRunner:
     """Class for running tasks in SageMaker."""
 
-    _DEFAULT_JOB_NAME_PREFIX = "sms-classification"
+    _DEFAULT_JOB_NAME_PREFIX = "sagemaker-job"
     _DEFAULT_VOLUME_SIZE = 30
     _DEFAULT_ENV_VARS = {
         "LOG_LEVEL": "INFO",
         "COLORIZE": "false",
         "HF_HUB_ENABLE_HF_TRANSFER": "1",
-        "VLLM_USE_MODELSCOPE": "false",
-        "VLLM_LOG_LEVEL": "DEBUG",
     }
     _DEFAULT_COMMANDS = [
-        "which poetry || curl -sSL https://install.python-poetry.org | POETRY_VERSION=2.1.3 python -",
         "cd /app/sagemaker_remote_function_workspace",
-        "poetry config virtualenvs.create false",
-        "poetry install --no-root --extras 'classification aws'",
-        "pip install huggingface_hub[cli] hf_transfer",
-        "pip install flashinfer-python",
-        "pip install outlines==1.0.4",
     ]
     _DEFAULT_IGNORE_PATTERNS = [
         "*.ipynb",

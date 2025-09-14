@@ -1,0 +1,138 @@
+name: Build and Deploy Sphinx Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/sphinx.yml"
+      - "langgraph_agent_toolkit/**"
+      - "pyproject.toml"
+  workflow_dispatch: # Allow manual triggering
+
+# Add permissions to allow GitHub Actions to push to gh-pages
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Fetch all history for proper versioning
+
+      - name: Create pip cache directory
+        run: mkdir -p /home/runner/.cache/pip
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          # Only enable caching if the directory exists
+          cache: "pip"
+          cache-dependency-path: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.2"
+
+      - name: Install dependencies with uv
+        run: |
+          # Install the package itself with all dependencies (instead of just installing the dev dependencies)
+          uv pip install -e ".[all-llms,all-backends,all-observability]"
+          uv pip install sphinx-rtd-theme sphinx-pyproject rootutils mock
+        env:
+          UV_SYSTEM_PYTHON: 1
+
+      - name: Create static directory if it doesn't exist
+        run: |
+          mkdir -p docs/_static
+
+      - name: Generate API docs
+        run: |
+          # Enhanced API documentation generation with better code documentation
+          sphinx-apidoc -f -e -o docs/generated langgraph_agent_toolkit \
+            --separate \
+            --no-toc \
+            --no-headings \
+            --module-first \
+            --doc-project="API Reference"
+        env:
+          # Environment variables to enable fake model and bypass authentication
+          USE_FAKE_MODEL: "true"
+          OPENAI_API_KEY: "sk-fake-key-for-docs-generation"
+          OPENAI_MODEL_NAME: "gpt-4-fake-model"
+          OPENAI_API_BASE_URL: "https://fake-api.openai.com/v1"
+          OPENAI_API_VERSION: "2023-05-15"
+          LANGFUSE_SECRET_KEY: "lf-sk-fake-for-docs"
+          LANGFUSE_PUBLIC_KEY: "lf-pk-fake-for-docs"
+          LANGFUSE_HOST: "http://localhost:3000"
+          MEMORY_BACKEND: "sqlite"
+          SQLITE_DB_PATH: ":memory:"
+          ANTHROPIC_API_KEY: "sk-ant-fake-key"
+          ANTHROPIC_MODEL_NAME: "claude-3-fake"
+          GOOGLE_VERTEXAI_API_KEY: "fake-vertexai-key"
+          GOOGLE_VERTEXAI_MODEL_NAME: "gemini-fake"
+          GOOGLE_GENAI_API_KEY: "fake-genai-key"
+          GOOGLE_GENAI_MODEL_NAME: "gemini-pro-fake"
+          OBSERVABILITY_BACKEND: "empty"
+
+      - name: Create autosummary template files
+        run: |
+          mkdir -p docs/_templates/autosummary
+          echo '{{ fullname | escape | underline }}
+
+          .. automodule:: {{ fullname }}
+             :members:
+             :undoc-members:
+             :show-inheritance:
+             :special-members: __init__' > docs/_templates/autosummary/module.rst
+
+          echo '{{ fullname | escape | underline }}
+
+          .. currentmodule:: {{ module }}
+
+          .. autoclass:: {{ objname }}
+             :members:
+             :show-inheritance:
+             :inherited-members:
+             :special-members: __init__
+             :undoc-members:' > docs/_templates/autosummary/class.rst
+
+      - name: Build documentation
+        run: |
+          cd docs && sphinx-build -b html -a -E -v . _build/html
+          # The -v flag provides verbose output to see any import errors
+        env:
+          # Environment variables to enable fake model and bypass authentication
+          USE_FAKE_MODEL: "true"
+          OPENAI_API_KEY: "sk-fake-key-for-docs-generation"
+          OPENAI_MODEL_NAME: "gpt-4-fake-model"
+          OPENAI_API_BASE_URL: "https://fake-api.openai.com/v1"
+          OPENAI_API_VERSION: "2023-05-15"
+          LANGFUSE_SECRET_KEY: "lf-sk-fake-for-docs"
+          LANGFUSE_PUBLIC_KEY: "lf-pk-fake-for-docs"
+          LANGFUSE_HOST: "http://localhost:3000"
+          MEMORY_BACKEND: "sqlite"
+          SQLITE_DB_PATH: ":memory:"
+          ANTHROPIC_API_KEY: "sk-ant-fake-key"
+          ANTHROPIC_MODEL_NAME: "claude-3-fake"
+          GOOGLE_VERTEXAI_API_KEY: "fake-vertexai-key"
+          GOOGLE_VERTEXAI_MODEL_NAME: "gemini-fake"
+          GOOGLE_GENAI_API_KEY: "fake-genai-key"
+          GOOGLE_GENAI_MODEL_NAME: "gemini-pro-fake"
+          # Disable all observability
+          OBSERVABILITY_BACKEND: "none"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html
+          force_orphan: true # Create a single-branch gh-pages
+          full_commit_message: "Docs: Update documentation site"
+          enable_jekyll: false

@@ -1,0 +1,11 @@
+# WandB experiment tracking configuration using Hydra instantiate
+_target_: src.experiment_tracking.wandb.WandbTracker
+
+# WandB specific settings
+name: null # Will use default naming if not specified
+tags: null # List of tags for the run
+notes: null # Notes for the run
+reinit: "finish_previous" # How to handle existing runs
+
+# Project will be read from WANDB_PROJECT env var
+# API key will be read from WANDB_API_KEY or WANDB_KEY env var

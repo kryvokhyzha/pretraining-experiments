@@ -1,0 +1,4 @@
+# TensorBoard experiment tracking configuration using Hydra instantiate
+_target_: src.experiment_tracking.tensorboard.TensorboardTracker
+# TensorBoard logs will be saved in the output directory
+# No additional configuration needed as it's handled by transformers

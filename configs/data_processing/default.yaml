@@ -1,0 +1,5 @@
+# Data processing configuration
+num_proc: 12
+max_seq_length: 2048
+max_records: null # Use full dataset
+eval_split_percentage: 0.001 # 0.1% for evaluation

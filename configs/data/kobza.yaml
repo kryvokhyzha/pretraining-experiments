@@ -1,0 +1,3 @@
+# Dataset configuration for Kobza dataset
+dataset_name: Goader/kobza
+text_column: text

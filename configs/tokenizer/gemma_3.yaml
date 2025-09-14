@@ -1,0 +1,5 @@
+# Tokenizer configuration for Gemma 3 using Hydra instantiate
+_target_: transformers.AutoTokenizer.from_pretrained
+_args_: ["google/gemma-3-270m"]
+token: ${oc.env:HF_TOKEN}
+trust_remote_code: true

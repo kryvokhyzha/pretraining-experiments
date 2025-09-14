@@ -1,0 +1,12 @@
+defaults:
+  - _self_
+  - hydra: default
+  - data: kobza
+  - model: gemma_3_270mb
+  - tokenizer: gemma_3
+  - training: default
+  - data_processing: default
+  - experiment: wandb
+
+seed: 42
+path_to_freeze_ids: data/freeze_ids_gemma_tereshchenko.joblib

@@ -4,14 +4,14 @@
 | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | CI/Testing | -                                                                                                                     |
 | Package    | [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3113/) |
-| Meta       | [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)      |
+| Meta       | [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)      |
 
 ---
 
 ## 📖 About
 
-> [!IMPORTANT] This is just research code written for fun over a few hours over
-> a glass of beer.
+> [!IMPORTANT]
+> This is just research code written for fun over a few hours over a glass of beer.
 
 This repository contains my personal **experiments with LLM pretraining**,
 specifically focused on pretraining **Gemma 3 270M** models on Ukrainian text
@@ -59,8 +59,8 @@ data using the Kobza dataset.
    make run_pretraining
    ```
 
-> [!WARNING] Full pretraining experiments are time-consuming. Always start with
-> the test configuration first.
+> [!WARNING]
+> Full pretraining experiments are time-consuming. Always start with the test configuration first.
 
 ### Experiment Configuration
 
@@ -115,8 +115,8 @@ make run_pretraining         # Full experiment
 
 ## ⚙️ Development Environment Setup
 
-> [!WARNING] This project is based on `Python 3.13` and uses `uv` for dependency
-> management.
+> [!WARNING] 
+> This project is based on `Python 3.13` and uses `uv` for dependency management.
 
 1. Clone the repository:
 
@@ -175,8 +175,8 @@ echo "HF_TOKEN=your_token_here" > .env
 python scripts/python/002-gemma-pretraining.py training.per_device_train_batch_size=1
 ```
 
-> [!NOTE] Check the training logs in `outputs/` directory for more detailed
-> error information.
+> [!NOTE]
+> Check the training logs in `outputs/` directory for more detailed error information.
 
 ---
 

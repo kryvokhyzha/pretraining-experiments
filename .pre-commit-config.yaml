@@ -38,3 +38,4 @@ repos:
         types_or: [markdown, yaml, toml, json, dockerfile, shell]
         additional_dependencies: ["prettier@3.0.3", "prettier-plugin-sh@0.13.1"]
         args: [--print-width=80, --prose-wrap=always]
+        exclude: "^README\\.md$"

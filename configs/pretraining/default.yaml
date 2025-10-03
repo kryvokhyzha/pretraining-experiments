@@ -3,6 +3,7 @@ pretrain_config:
 
   seed: 42
 
+  # max_seq_length: 2048
   # max_length: 2048
   # packing: false
   # eval_packing: false

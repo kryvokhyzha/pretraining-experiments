@@ -1,5 +1,6 @@
 num_proc: 12
-max_seq_length: 2048
+max_seq_length: 8192
 n_train: null
 n_val: null
 n_test: null
+use_packing: true

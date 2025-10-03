@@ -1,5 +1,6 @@
 num_proc: 1
 max_seq_length: 128
-n_train: 1
-n_val: 1
-n_test: 1
+n_train: 2
+n_val: 2
+n_test: 2
+use_packing: true

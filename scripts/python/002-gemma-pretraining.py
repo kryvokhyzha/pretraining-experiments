@@ -158,6 +158,8 @@ def main(cfg: DictConfig) -> None:
     logger.info(f"  - pad_token_id: {tokenizer.pad_token_id}")
     logger.info(f"  - padding_side: {tokenizer.padding_side}")
     logger.info(f"  - truncation_side: {tokenizer.truncation_side}")
+    logger.info(f"  - bos_token_id: {tokenizer.bos_token_id}")
+    logger.info(f"  - eos_token_id: {tokenizer.eos_token_id}")
 
     logger.info("Loading model...")
     model = instantiate(cfg.model.main)
@@ -186,6 +188,7 @@ def main(cfg: DictConfig) -> None:
         n_test=cfg.data_processing.n_test,
         text_column=cfg.data.text_column,
         seed=cfg.seed,
+        use_packing=cfg.data_processing.get("use_packing", True),
     )
 
     # Extract train and eval datasets

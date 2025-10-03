@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from typing import Dict, Optional
 
 from datasets import Dataset, load_dataset
@@ -22,6 +23,7 @@ def prepare_dataset(
     n_test: Optional[int] = None,
     text_column: str = "text",
     seed: int = 42,
+    use_packing: bool = True,
 ) -> Dict[str, Dataset]:
     """Load dataset either from local parquet file(s) or from HF dataset id.
 
@@ -38,6 +40,7 @@ def prepare_dataset(
         n_test: Number of test records to use (None for all)
         text_column: Name of the text column in the dataset
         seed: Random seed for reproducible splits
+        use_packing: Whether to use packing (concatenation + chunking) for efficiency
 
     Returns:
         Dictionary containing tokenized datasets splits
@@ -54,16 +57,54 @@ def prepare_dataset(
     if n_train is not None and n_train > 0:
         ds = _limit_dataset_records(ds=ds, n_train=n_train, n_val=n_val, n_test=n_test)
 
-    # Step 4: Ensure text column exists and tokenize
+    # Step 4: Tokenize with EOS separator (without special tokens)
     tokenized_ds = _tokenize_datasets(
         ds=ds,
         tokenizer=tokenizer,
         text_column=text_column,
-        max_seq_length=max_seq_length,
         num_proc=num_proc,
     )
 
-    return tokenized_ds
+    # Step 5: Apply packing if enabled
+    if use_packing:
+        logger.info(f"Applying packing to group sequences into {max_seq_length} token blocks...")
+
+        bos_id = tokenizer.bos_token_id
+        eos_id = tokenizer.eos_token_id
+
+        if bos_id is None:
+            raise ValueError("Tokenizer must have a BOS token defined for packing.")
+        if eos_id is None:
+            raise ValueError("Tokenizer must have an EOS token defined for packing.")
+
+        packed_ds = {}
+        for split_name, split_data in tokenized_ds.items():
+            packed_ds[split_name] = split_data.map(
+                partial(
+                    _group_texts,
+                    max_seq_length=max_seq_length,
+                    bos_token_id=bos_id,
+                    eos_token_id=eos_id,
+                ),
+                batched=True,
+                num_proc=max(1, num_proc),
+                desc=f"Packing {split_name} into {max_seq_length}-token blocks",
+            )
+            logger.info(f"Packed {split_name}: {len(packed_ds[split_name])} blocks of {max_seq_length} tokens")
+
+        return packed_ds
+    else:
+        # Fallback: traditional truncation (less efficient)
+        logger.warning("Packing disabled - using truncation (less efficient for pretraining)")
+        final_ds = {}
+        for split_name, split_data in tokenized_ds.items():
+            final_ds[split_name] = split_data.map(
+                partial(_truncate_sequences, max_seq_length=max_seq_length),
+                batched=True,
+                num_proc=max(1, num_proc),
+                desc=f"Truncating {split_name} to {max_seq_length} tokens",
+            )
+        return final_ds
 
 
 def _load_raw_dataset(path: str) -> Dict[str, Dataset]:
@@ -167,13 +208,36 @@ def _tokenize_datasets(
     ds: Dict[str, Dataset],
     tokenizer: AutoTokenizer,
     text_column: str,
-    max_seq_length: int,
     num_proc: int,
 ) -> Dict[str, Dataset]:
-    """Tokenize all datasets splits."""
+    """Tokenize all datasets splits and add EOS separator between documents.
+
+    This tokenization step:
+    1. Disables automatic special token addition (add_special_tokens=False)
+    2. Adds EOS token manually after each document as separator
+    3. Does NOT truncate (truncation will happen during packing)
+    """
 
     def tokenize_batch(examples):
-        return tokenizer(examples[text_column], truncation=True, max_length=max_seq_length)
+        # Tokenize without automatic special tokens
+        tokenized_output = tokenizer(
+            examples[text_column],
+            add_special_tokens=False,
+            truncation=False,  # Don't truncate yet - packing will handle this
+        )
+
+        # Add EOS as separator after each document
+        eos_id = tokenizer.eos_token_id
+        if eos_id is None:
+            raise ValueError("Tokenizer must have an EOS token defined.")
+
+        tokenized_output["input_ids"] = [ids + [eos_id] for ids in tokenized_output["input_ids"]]
+
+        # Handle attention_mask if present
+        if "attention_mask" in tokenized_output:
+            tokenized_output["attention_mask"] = [mask + [1] for mask in tokenized_output["attention_mask"]]
+
+        return tokenized_output
 
     tokenized_ds = {}
     for split_name, split_data in ds.items():
@@ -182,6 +246,83 @@ def _tokenize_datasets(
             batched=True,
             num_proc=max(1, num_proc),
             remove_columns=split_data.column_names,
+            desc=f"Tokenizing and adding EOS for {split_name}",
         )
 
     return tokenized_ds
+
+
+def _group_texts(
+    examples: Dict[str, list],
+    max_seq_length: int,
+    bos_token_id: int,
+    eos_token_id: int,
+) -> Dict[str, list]:
+    """Concatenate all sequences into one long list and chunk into fixed-length blocks.
+
+    This implements packing for efficient pretraining:
+    1. Concatenates all tokenized documents (each ending with EOS from _tokenize_datasets)
+    2. Chunks into blocks of (max_seq_length - 2) to reserve space for BOS and final EOS
+    3. Adds BOS at start and EOS at end of each block
+
+    Final structure of each block:
+    [<bos>, doc1_tokens..., <eos>, doc2_tokens..., <eos>]
+
+    Note: Documents within the block already have EOS separators from tokenization,
+    and we add a final EOS at the end of each block.
+
+    Args:
+        examples: Batch of tokenized examples (each document ends with EOS)
+        max_seq_length: Target sequence length for each block (including BOS and final EOS)
+        bos_token_id: BOS token ID to prepend at start of each block
+        eos_token_id: EOS token ID to append at end of each block
+
+    Returns:
+        Dictionary with packed sequences
+
+    """
+    # 1. Concatenate all texts into one super-long list
+    # Each document already has EOS at the end from _tokenize_datasets
+    concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
+    total_length = len(concatenated_examples[list(examples.keys())[0]])
+
+    # 2. Calculate chunk size (reserve 1 token for BOS, 1 for final EOS)
+    chunk_size = max_seq_length - 2
+
+    if chunk_size <= 0:
+        raise ValueError(f"max_seq_length ({max_seq_length}) must be at least 3 to fit BOS + content + EOS")
+
+    if total_length < chunk_size:
+        # If we don't have enough tokens for even one block, return empty
+        return {k: [] for k in examples.keys()}
+
+    # 3. Trim remainder to make it divisible by chunk_size
+    total_length = (total_length // chunk_size) * chunk_size
+
+    # 4. Chunk into blocks of (max_seq_length - 2) to leave room for BOS and final EOS
+    result = {
+        k: [t[i : i + chunk_size] for i in range(0, total_length, chunk_size)] for k, t in concatenated_examples.items()
+    }
+
+    # 5. CRITICAL FOR GEMMA: Add BOS at start and EOS at end of each block
+    # This ensures: [<bos>, content_with_internal_eos..., <eos>]
+    for i in range(len(result["input_ids"])):
+        # Prepend BOS and append EOS to make final length = max_seq_length
+        result["input_ids"][i] = [bos_token_id] + result["input_ids"][i] + [eos_token_id]
+
+        # Update attention_mask if it exists
+        if "attention_mask" in result:
+            result["attention_mask"][i] = [1] + result["attention_mask"][i] + [1]
+
+    return result
+
+
+def _truncate_sequences(
+    examples: Dict[str, list],
+    max_seq_length: int,
+) -> Dict[str, list]:
+    """Fallback truncation for when packing is disabled."""
+    result = {}
+    for k, sequences in examples.items():
+        result[k] = [seq[:max_seq_length] for seq in sequences]
+    return result

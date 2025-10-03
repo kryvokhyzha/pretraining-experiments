@@ -4,7 +4,7 @@
 | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | CI/Testing | -                                                                                                                     |
 | Package    | [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3113/) |
-| Meta       | [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)      |
+| Meta       | [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![GitHub License](https://img.shields.io/github/license/kryvokhyzha/pretraining-experiments)](https://github.com/kryvokhyzha/pretraining-experiments/blob/main/LICENSE) [![WandB](https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-gradient.svg)](https://wandb.ai/site)      |
 
 ---
 

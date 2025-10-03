@@ -1,0 +1,57 @@
+pretrain_config:
+  _target_: transformers.TrainingArguments
+
+  seed: 42
+
+  # max_length: 2048
+  # packing: false
+  # eval_packing: false
+  group_by_length: true
+  dataloader_pin_memory: true
+
+  num_train_epochs: 2
+  # loss_type: nll
+
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 4
+  gradient_checkpointing: true
+  gradient_checkpointing_kwargs:
+    use_reentrant: false
+
+  optim: adamw_torch_fused
+  learning_rate: 2e-4
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+
+  max_grad_norm: 0.3
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  lr_scheduler_type: cosine
+  # lr_scheduler_kwargs:
+  #   num_cycles: 1
+
+  # fp16: true
+  bf16: true
+  # tf32: true
+
+  # Logging and evaluation configuration\
+  save_strategy: epoch
+  eval_strategy: steps
+  logging_steps: 50
+  eval_steps: 250
+  save_total_limit: 2
+  eval_on_start: true
+
+  push_to_hub: true
+
+  dataloader_num_workers: 2
+  dataloader_prefetch_factor: 2
+
+  remove_unused_columns: false
+  ddp_find_unused_parameters: false
+
+  # dataset_kwargs:
+  #   add_special_tokens: false
+  #   append_concat_token: true

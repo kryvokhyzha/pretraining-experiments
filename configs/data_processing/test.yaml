@@ -1,5 +1,5 @@
-# Data processing configuration for testing
 num_proc: 1
 max_seq_length: 128
-max_records: 1 # Use only 1 example for testing
-eval_split_percentage: 0.1 # 10% for evaluation
+n_train: 1
+n_val: 1
+n_test: 1

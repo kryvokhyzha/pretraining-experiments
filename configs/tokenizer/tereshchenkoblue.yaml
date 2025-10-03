@@ -1,5 +1,9 @@
-# Tokenizer configuration for TereshchenkoBlue using Hydra instantiate
-_target_: transformers.AutoTokenizer.from_pretrained
-_args_: ["transhumanist-already-exists/tereshchenkoblue-tokenizer"]
-token: ${oc.env:HF_TOKEN}
-trust_remote_code: true
+tokenizer:
+  _target_: transformers.AutoTokenizer.from_pretrained
+  _args_: ["transhumanist-already-exists/tereshchenkoblue-tokenizer"]
+  token: ${oc.env:HF_TOKEN}
+  trust_remote_code: true
+
+kwargs:
+  padding_side: left
+  truncation_side: left

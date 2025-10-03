@@ -1,3 +1,3 @@
-# Dataset configuration for Kobza dataset
-dataset_name: Goader/kobza
+path: Goader/kobza
+name: ukrainian
 text_column: text

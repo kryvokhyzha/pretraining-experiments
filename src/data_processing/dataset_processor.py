@@ -13,14 +13,14 @@ def is_local_parquet(path: str) -> bool:
 
 
 def prepare_dataset(
-    dataset_name: str,
+    path: str,
     tokenizer: AutoTokenizer,
     max_seq_length: int,
     num_proc: int,
-    max_records: Optional[int] = None,
+    n_train: Optional[int] = None,
+    n_val: Optional[int] = None,
+    n_test: Optional[int] = None,
     text_column: str = "text",
-    eval_split_percentage: float = 0.1,
-    create_eval_split: bool = False,
     seed: int = 42,
 ) -> Dict[str, Dataset]:
     """Load dataset either from local parquet file(s) or from HF dataset id.
@@ -29,14 +29,14 @@ def prepare_dataset(
     If create_eval_split is True, creates train/eval splits.
 
     Args:
-        dataset_name: Path to local parquet file or HuggingFace dataset name
+        path: Path to local parquet file or HuggingFace dataset name
         tokenizer: Tokenizer to use for tokenization
         max_seq_length: Maximum sequence length for tokenization
         num_proc: Number of processes for parallel processing
-        max_records: Maximum number of records to use (None for all)
+        n_train: Number of training records to use (None for all)
+        n_val: Number of validation records to use (None for all)
+        n_test: Number of test records to use (None for all)
         text_column: Name of the text column in the dataset
-        eval_split_percentage: Percentage of data to use for evaluation split
-        create_eval_split: Whether to create evaluation split if it doesn't exist
         seed: Random seed for reproducible splits
 
     Returns:
@@ -44,117 +44,131 @@ def prepare_dataset(
 
     """
     # Step 1: Load the dataset
-    ds = _load_raw_dataset(dataset_name=dataset_name, create_eval_split=create_eval_split)
+    ds = _load_raw_dataset(path=path)
 
     # Step 2: Create evaluation split if needed (before limiting records)
-    if create_eval_split and "validation" not in ds:
-        ds = _create_train_eval_split(ds=ds, eval_split_percentage=eval_split_percentage, seed=seed)
+    if n_val or n_test:
+        ds = _create_train_eval_split(ds=ds, n_val=n_val, n_test=n_test, seed=seed)
 
     # Step 3: Limit records if specified (after splitting)
-    if max_records is not None and max_records > 0:
-        ds = _limit_dataset_records(ds=ds, max_records=max_records, eval_split_percentage=eval_split_percentage)
+    if n_train is not None and n_train > 0:
+        ds = _limit_dataset_records(ds=ds, n_train=n_train, n_val=n_val, n_test=n_test)
 
     # Step 4: Ensure text column exists and tokenize
-    text_column = _validate_text_column(dataset=ds["train"], text_column=text_column)
     tokenized_ds = _tokenize_datasets(
-        ds=ds, tokenizer=tokenizer, text_column=text_column, max_seq_length=max_seq_length, num_proc=num_proc
+        ds=ds,
+        tokenizer=tokenizer,
+        text_column=text_column,
+        max_seq_length=max_seq_length,
+        num_proc=num_proc,
     )
 
     return tokenized_ds
 
 
-def _load_raw_dataset(dataset_name: str, create_eval_split: bool) -> Dict[str, Dataset]:
+def _load_raw_dataset(path: str) -> Dict[str, Dataset]:
     """Load dataset from local parquet or HuggingFace hub."""
-    if is_local_parquet(path=dataset_name):
-        ds = load_dataset("parquet", data_files=dataset_name, split="train")
+    if is_local_parquet(path=path):
+        ds = load_dataset("parquet", data_files=path, split="train")
         return {"train": ds}
-
-    try:
-        # Try to load with existing splits
-        ds = load_dataset(dataset_name)
-        if "validation" not in ds and "test" not in ds and create_eval_split:
-            # No validation split exists, we'll create one from train
-            return {"train": ds["train"]}
-        else:
-            # Has validation or test split, use as is
-            logger.info(f"Dataset has existing splits: {list(ds.keys())}")
-            return {"train": ds["train"]} if not create_eval_split else ds
-    except Exception:
-        # Fallback to loading just train split
-        ds = load_dataset(dataset_name, split="train")
-        return {"train": ds}
+    else:
+        return load_dataset(path=path)
 
 
-def _create_train_eval_split(ds: Dict[str, Dataset], eval_split_percentage: float, seed: int) -> Dict[str, Dataset]:
+def _create_train_eval_split(
+    ds: Dict[str, Dataset],
+    n_val: Optional[int],
+    n_test: Optional[int],
+    seed: int,
+) -> Dict[str, Dataset]:
     """Create train/eval split from the train dataset."""
-    train_size = len(ds["train"])
-
-    if train_size <= 1:
-        logger.warning(
-            f"Cannot create eval split: dataset has only {train_size} record(s). "
-            "Using train dataset for both training and evaluation."
-        )
-        ds["validation"] = ds["train"]
+    if "train" not in ds:
+        logger.warning("No 'train' split found in dataset. Returning dataset as-is.")
         return ds
 
-    logger.info(f"Creating train/eval split with {eval_split_percentage:.1%} for evaluation")
+    # Shuffle the dataset before splitting
+    ds["train"] = ds["train"].shuffle(seed=seed)
 
-    eval_size = max(1, int(train_size * eval_split_percentage))
-    split_ds = ds["train"].train_test_split(
-        test_size=eval_size,
-        shuffle=True,
-        seed=seed,
+    train_size = len(ds["train"])
+
+    # Calculate total records needed for splits
+    total_split_size = (n_val or 0) + (n_test or 0)
+
+    if total_split_size == 0:
+        # No splits requested
+        return ds
+
+    if train_size <= total_split_size:
+        logger.warning(
+            f"Cannot create splits: dataset has {train_size} records but {total_split_size} needed for splits. "
+            "Splits will be limited to available data."
+        )
+
+    # Create validation split if requested
+    if n_val and n_val > 0:
+        val_size = min(n_val, train_size)
+        split_ds = ds["train"].train_test_split(
+            test_size=val_size,
+            shuffle=False,
+            seed=seed,
+        )
+        ds["train"] = split_ds["train"]
+        ds["validation"] = split_ds["test"]
+        logger.info(f"Created validation split with {len(ds['validation'])} records")
+
+    # Create test split if requested
+    if n_test and n_test > 0:
+        test_size = min(n_test, len(ds["train"]))
+        split_ds = ds["train"].train_test_split(
+            test_size=test_size,
+            shuffle=False,
+            seed=seed,
+        )
+        ds["train"] = split_ds["train"]
+        ds["test"] = split_ds["test"]
+        logger.info(f"Created test split with {len(ds['test'])} records")
+
+    logger.info(
+        f"Final splits - Train: {len(ds['train'])}, "
+        + (f"Val: {len(ds['validation'])}, " if "validation" in ds else "")
+        + (f"Test: {len(ds['test'])}" if "test" in ds else "")
     )
 
-    ds["train"] = split_ds["train"]
-    ds["validation"] = split_ds["test"]
-
-    logger.info(f"Split created - Train: {len(ds['train'])}, Eval: {len(ds['validation'])}")
     return ds
 
 
 def _limit_dataset_records(
-    ds: Dict[str, Dataset], max_records: int, eval_split_percentage: float
+    ds: Dict[str, Dataset],
+    n_train: Optional[int],
+    n_val: Optional[int],
+    n_test: Optional[int],
 ) -> Dict[str, Dataset]:
     """Limit the number of records in each split."""
+    limits = {
+        "train": n_train,
+        "validation": n_val,
+        "test": n_test,
+    }
+
     for split_name in list(ds.keys()):
-        original_size = len(ds[split_name])
-
-        if split_name == "train" and "validation" in ds:
-            # For training, use most of the max_records
-            train_records = max(1, int(max_records * (1 - eval_split_percentage)))
-            limit = min(train_records, original_size)
-        elif split_name == "validation" and "train" in ds:
-            # For validation, use remaining records
-            eval_records = max(1, max_records - len(ds["train"]))
-            limit = min(eval_records, original_size)
-        else:
-            # For other splits or single split, use max_records
-            limit = min(max_records, original_size)
-
-        ds[split_name] = ds[split_name].select(range(limit))
+        if split_name in limits and limits[split_name] is not None and limits[split_name] > 0:
+            original_size = len(ds[split_name])
+            limit = min(limits[split_name], original_size)
+            ds[split_name] = ds[split_name].select(range(limit))
+            logger.info(f"Limited {split_name} split from {original_size} to {limit} records")
 
     splits_info = ", ".join([f"{name}: {len(split)}" for name, split in ds.items()])
-    logger.info(f"Dataset limited - {splits_info}")
+    logger.info(f"Final dataset sizes - {splits_info}")
+
     return ds
 
 
-def _validate_text_column(dataset: Dataset, text_column: str) -> str:
-    """Validate that the text column exists in the dataset."""
-    if text_column in dataset.column_names:
-        return text_column
-
-    # Fallback to search for text-like columns
-    for col in dataset.column_names:
-        if col.lower() in ("text", "document", "content"):
-            logger.info(f"Using column '{col}' as text column instead of '{text_column}'")
-            return col
-
-    raise ValueError(f"No text-like column found in dataset. Columns: {dataset.column_names}")
-
-
 def _tokenize_datasets(
-    ds: Dict[str, Dataset], tokenizer: AutoTokenizer, text_column: str, max_seq_length: int, num_proc: int
+    ds: Dict[str, Dataset],
+    tokenizer: AutoTokenizer,
+    text_column: str,
+    max_seq_length: int,
+    num_proc: int,
 ) -> Dict[str, Dataset]:
     """Tokenize all datasets splits."""
 

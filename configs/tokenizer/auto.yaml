@@ -1,6 +1,6 @@
 tokenizer:
   _target_: transformers.AutoTokenizer.from_pretrained
-  _args_: ["google/gemma-3-270m"]
+  _args_: ["${model.main._args_[0]}"]
   token: ${oc.env:HF_TOKEN}
   trust_remote_code: true
 

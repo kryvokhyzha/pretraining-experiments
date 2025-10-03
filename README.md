@@ -80,7 +80,7 @@ You can modify experiments using Hydra's command-line syntax:
 python scripts/python/002-gemma-pretraining.py tokenizer=tereshchenkoblue
 
 # Change training parameters
-python scripts/python/002-gemma-pretraining.py training.learning_rate=1e-4 training.per_device_train_batch_size=2
+python scripts/python/002-gemma-pretraining.py pretraining.pretrain_config.learning_rate=1e-4 pretraining.pretrain_config.per_device_train_batch_size=2
 
 # Use local data
 python scripts/python/002-gemma-pretraining.py data=kobza_local

@@ -1,7 +1,8 @@
-# Model configuration for Gemma 3 270M using Hydra instantiate
-_target_: transformers.AutoModelForCausalLM.from_pretrained
-_args_: ["google/gemma-3-270m"]
-token: ${oc.env:HF_TOKEN}
-trust_remote_code: true
-attn_implementation: "eager"
-device_map: "auto"
+main:
+  _target_: transformers.AutoModelForCausalLM.from_pretrained
+  _args_: ["google/gemma-3-270m"]
+  token: ${oc.env:HF_TOKEN}
+  trust_remote_code: true
+  attn_implementation: "eager"
+  device_map: "auto"
+  dtype: "auto"

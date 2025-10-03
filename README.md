@@ -179,11 +179,16 @@ python scripts/python/002-gemma-pretraining.py training.per_device_train_batch_s
 > [!NOTE]
 > Check the training logs in `outputs/` directory for more detailed error information.
 
----
-
 ## 📝 Contributing
 
 1. Fork repository and create a feature branch.
 2. Follow existing code style (enforced by pre-commit hooks).
 3. Add tests for new functionality.
 4. Submit a PR for review.
+
+## 📖 Useful Resources
+
+- [Fixing All Gemma Bugs](https://unsloth.ai/blog/gemma-bugs)
+- [Gemma_3_270_M_Small_Language_Model_Scratch_Final](https://colab.research.google.com/drive/1OHPQf3iM9RD9g2wZRTj7nf8fs3pgbnF4?usp=sharing)
+- [Build an LLM from Scratch 5: Pretraining on Unlabeled Data](https://www.youtube.com/watch?v=Zar2TJv-sE0)
+- [Continued pretraining - Korean + Unsloth](https://colab.research.google.com/drive/1tEd1FrOXWMnCU9UIvdYhs61tkxdMuKZu?usp=sharing#scrollTo=LjY75GoYUCB8)

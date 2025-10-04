@@ -87,6 +87,9 @@ python scripts/python/002-gemma-pretraining.py data=kobza_local
 
 # Disable experiment tracking
 python scripts/python/002-gemma-pretraining.py experiment=none
+
+# Use Malyuk dataset and Tereshchenkoblue tokenizer
+python scripts/python/002-gemma-pretraining.py data=malyuk tokenizer=tereshchenkoblue
 ```
 
 ### Available Scripts

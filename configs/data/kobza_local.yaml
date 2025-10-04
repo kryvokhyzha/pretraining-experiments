@@ -1,3 +1,2 @@
 path: data/kobza/000_ukr_corpus_00000.parquet
-name: ukrainian
 text_column: text

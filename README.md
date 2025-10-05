@@ -195,3 +195,8 @@ python scripts/python/002-gemma-pretraining.py training.per_device_train_batch_s
 - [Gemma_3_270_M_Small_Language_Model_Scratch_Final](https://colab.research.google.com/drive/1OHPQf3iM9RD9g2wZRTj7nf8fs3pgbnF4?usp=sharing)
 - [Build an LLM from Scratch 5: Pretraining on Unlabeled Data](https://www.youtube.com/watch?v=Zar2TJv-sE0)
 - [Continued pretraining - Korean + Unsloth](https://colab.research.google.com/drive/1tEd1FrOXWMnCU9UIvdYhs61tkxdMuKZu?usp=sharing#scrollTo=LjY75GoYUCB8)
+- [Fewer Truncations Improve Language Modeling](https://arxiv.org/html/2404.10830v1)
+- [Efficient LLM Pretraining: Packed Sequences and Masked Attention](https://huggingface.co/blog/sirluk/llm-sequence-packing)
+- [Packing Analysis: Packing Is More Appropriate for Large Models or Datasets in Supervised Fine-tuning](https://arxiv.org/html/2410.08081v2)
+- [Improving Continual Pre-training Through Seamless Data Packing](https://aclanthology.org/2025.findings-acl.777.pdf)
+- [Fewer Truncations Improve Language Modeling](https://arxiv.org/pdf/2404.10830)

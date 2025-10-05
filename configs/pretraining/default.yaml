@@ -13,9 +13,9 @@ pretrain_config:
   num_train_epochs: 1
   # loss_type: nll
 
-  per_device_train_batch_size: 8
-  per_device_eval_batch_size: 8
-  gradient_accumulation_steps: 4
+  per_device_train_batch_size: 2
+  # per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 8
   gradient_checkpointing: true
   gradient_checkpointing_kwargs:
     use_reentrant: false
@@ -37,13 +37,14 @@ pretrain_config:
   bf16: true
   # tf32: true
 
-  # Logging and evaluation configuration\
-  save_strategy: epoch
-  eval_strategy: steps
+  # Logging and evaluation configuration
+  save_strategy: steps
+  save_steps: 1000
+  # eval_strategy: steps
   logging_steps: 50
-  eval_steps: 250
-  save_total_limit: 2
-  eval_on_start: true
+  # eval_steps: 250
+  save_total_limit: 3
+  # eval_on_start: true
 
   push_to_hub: true
 

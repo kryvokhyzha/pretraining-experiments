@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Set
 
 from loguru import logger as loguru_logger
 
@@ -10,7 +9,7 @@ class DuplicateFilter:
     """Filters away duplicate log messages to prevent spamming."""
 
     def __init__(self):
-        self.msgs: Set[str] = set()
+        self.msgs: set[str] = set()
 
     def __call__(self, record) -> bool:
         k = f"{record['level']}{record['message']}"
@@ -95,7 +94,7 @@ class LoggerConfig(metaclass=SingletonMeta):
         # Configure logger on initialization
         self._setup_logger()
 
-    def _setup_logger(self, log_file: Optional[str] = None) -> None:
+    def _setup_logger(self, log_file: str | None = None) -> None:
         """Configure Loguru logger based on environment settings.
 
         Args:
@@ -242,7 +241,7 @@ _logger_config = LoggerConfig()
 logger = _logger_config.logger
 
 
-def get_logger(log_file: Optional[str] = None):
+def get_logger(log_file: str | None = None):
     """Get the configured logger instance, optionally with file logging.
 
     Args:

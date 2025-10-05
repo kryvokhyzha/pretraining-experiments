@@ -1,12 +1,10 @@
-from typing import Any, Dict, List
-
 from src.experiment_tracking.base import BaseExperimentTracker
 
 
 class TensorboardTracker(BaseExperimentTracker):
     """TensorBoard experiment tracker."""
 
-    def init(self, project: str, config: Dict[str, Any], **kwargs) -> None:
+    def init(self, project: str, config: dict[str, any], **kwargs) -> None:
         """Initialize TensorBoard tracking.
 
         TensorBoard initialization is handled by transformers automatically
@@ -14,7 +12,7 @@ class TensorboardTracker(BaseExperimentTracker):
         """
         pass
 
-    def get_callbacks(self) -> List[Any]:
+    def get_callbacks(self) -> list[any]:
         """Get TensorBoard callbacks for the trainer."""
         try:
             from transformers.integrations import TensorBoardCallback

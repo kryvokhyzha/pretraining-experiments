@@ -1,13 +1,11 @@
-from typing import Optional, Tuple
-
 import boto3
 
 from src.helper.logging import logger
 
 
 def get_boto_session(
-    profile_name: Optional[str] = None,
-    region_name: Optional[str] = None,
+    profile_name: str | None = None,
+    region_name: str | None = None,
 ) -> boto3.Session:
     """Create and return a boto3 session with the given profile and region."""
     return boto3.Session(profile_name=profile_name, region_name=region_name)
@@ -18,7 +16,7 @@ def is_s3_path(path: str) -> bool:
     return isinstance(path, str) and path.startswith("s3://")
 
 
-def parse_s3_path(s3_path: str) -> Tuple[str, str]:
+def parse_s3_path(s3_path: str) -> tuple[str, str]:
     """Parse an S3 path into bucket and key."""
     path = s3_path.replace("s3://", "")
     path = path.rstrip("/")

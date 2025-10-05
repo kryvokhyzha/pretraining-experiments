@@ -1,5 +1,4 @@
 import os
-from typing import Any, Dict, List, Optional
 
 from src.experiment_tracking.base import BaseExperimentTracker
 
@@ -9,16 +8,16 @@ class WandbTracker(BaseExperimentTracker):
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        notes: Optional[str] = None,
+        name: str | None = None,
+        tags: list[str] | None = None,
+        notes: str | None = None,
         reinit: str = "finish_previous",
         **kwargs,
     ):
         """Initialize WandbTracker with specific parameters."""
         super().__init__(name=name, tags=tags, notes=notes, reinit=reinit, **kwargs)
 
-    def init(self, project: str, config: Dict[str, Any], **kwargs) -> None:
+    def init(self, project: str, config: dict[str, any], **kwargs) -> None:
         """Initialize wandb tracking."""
         try:
             import wandb
@@ -42,7 +41,7 @@ class WandbTracker(BaseExperimentTracker):
         except ImportError:
             raise ImportError("wandb is required for WandbTracker. Install with: `pip install wandb`")
 
-    def get_callbacks(self) -> List[Any]:
+    def get_callbacks(self) -> list[any]:
         """Get wandb callbacks for the trainer."""
         try:
             from transformers.integrations import WandbCallback

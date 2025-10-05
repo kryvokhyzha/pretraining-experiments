@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
 
 
 class BaseExperimentTracker(ABC):
@@ -10,12 +9,12 @@ class BaseExperimentTracker(ABC):
         self.config = kwargs
 
     @abstractmethod
-    def init(self, project: str, config: Dict[str, Any], **kwargs) -> None:
+    def init(self, project: str, config: dict[str, any], **kwargs) -> None:
         """Initialize the experiment tracker."""
         pass
 
     @abstractmethod
-    def get_callbacks(self) -> List[Any]:
+    def get_callbacks(self) -> list[any]:
         """Get callbacks for the trainer."""
         pass
 

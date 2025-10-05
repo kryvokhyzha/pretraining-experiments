@@ -1,6 +1,5 @@
 import os
 from functools import partial
-from typing import Dict, Optional
 
 import hydra
 import joblib
@@ -90,7 +89,7 @@ def create_training_arguments(
     return instantiate(training_config)
 
 
-def _hook(grad: torch.tensor, ids: torch.tensor) -> Optional[torch.tensor]:
+def _hook(grad: torch.tensor, ids: torch.tensor) -> torch.Tensor | None:
     if grad is None:
         return None
 
@@ -128,7 +127,7 @@ def main(cfg: DictConfig) -> None:
     project_name: str = os.getenv("PROJECT_NAME")
     if project_name is None:
         raise ValueError("PROJECT_NAME environment variable is not set.")
-    config_dict: Dict = OmegaConf.to_container(cfg, resolve=True)
+    config_dict: dict = OmegaConf.to_container(cfg, resolve=True)
     experiment_tracker.init(project=project_name, config=config_dict)
 
     # Tokenizer + model using Hydra instantiate
@@ -193,10 +192,11 @@ def main(cfg: DictConfig) -> None:
 
     # Extract train and eval datasets
     train_dataset: Dataset = datasets["train"]
-    eval_dataset: Optional[Dataset] = datasets.get("validation", None)
+    eval_dataset: Dataset | None = datasets.get("validation", None)
 
     console.display_df_as_table(train_dataset.to_pandas()[:2], title="Example of Train Data", max_col_width=None)
-    console.display_df_as_table(eval_dataset.to_pandas()[:2], title="Example of Eval Data", max_col_width=None)
+    if eval_dataset:
+        console.display_df_as_table(eval_dataset.to_pandas()[:2], title="Example of Eval Data", max_col_width=None)
 
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False, seed=cfg.seed)
 

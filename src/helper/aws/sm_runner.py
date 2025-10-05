@@ -1,5 +1,4 @@
 import os
-from typing import Any, Callable, Dict, List, Optional
 
 import sagemaker
 from sagemaker.remote_function import CustomFileFilter, remote
@@ -36,12 +35,12 @@ class SageMakerRunner:
         image_uri: str,
         role: str,
         instance_type: str,
-        region: Optional[str] = None,
-        profile_name: Optional[str] = None,
-        job_name_prefix: Optional[str] = None,
-        volume_size: Optional[int] = None,
-        sm_remote_kwargs: Optional[Dict[str, Any]] = None,
-        sm_session_kwargs: Optional[Dict[str, Any]] = None,
+        region: str | None = None,
+        profile_name: str | None = None,
+        job_name_prefix: str | None = None,
+        volume_size: int | None = None,
+        sm_remote_kwargs: dict[str, any] | None = None,
+        sm_session_kwargs: dict[str, any] | None = None,
     ):
         """Initialize the SageMaker runner.
 
@@ -70,10 +69,10 @@ class SageMakerRunner:
 
     def get_remote_settings(
         self,
-        environment_variables: Optional[Dict[str, str]] = None,
-        pre_execution_commands: Optional[List[str]] = None,
-        ignore_patterns: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        environment_variables: dict[str, str] | None = None,
+        pre_execution_commands: list[str] | None = None,
+        ignore_patterns: list[str] | None = None,
+    ) -> dict[str, any]:
         """Get settings for the remote function."""
         env_vars = self._DEFAULT_ENV_VARS.copy()
 
@@ -108,12 +107,12 @@ class SageMakerRunner:
 
     def run_remote_task(
         self,
-        task_fn: Callable,
-        task_args: Dict[str, Any],
-        environment_variables: Optional[Dict[str, str]] = None,
-        pre_execution_commands: Optional[List[str]] = None,
-        ignore_patterns: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        task_fn: callable,
+        task_args: dict[str, any],
+        environment_variables: dict[str, str] | None = None,
+        pre_execution_commands: list[str] | None = None,
+        ignore_patterns: list[str] | None = None,
+    ) -> dict[str, any]:
         """Run a task remotely in SageMaker."""
         settings = self.get_remote_settings(
             environment_variables=environment_variables,

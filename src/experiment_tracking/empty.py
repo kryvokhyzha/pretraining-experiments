@@ -1,16 +1,14 @@
-from typing import Any, Dict, List
-
 from src.experiment_tracking.base import BaseExperimentTracker
 
 
 class EmptyTracker(BaseExperimentTracker):
     """No experiment tracking."""
 
-    def init(self, project: str, config: Dict[str, Any], **kwargs) -> None:
+    def init(self, project: str, config: dict[str, any], **kwargs) -> None:
         """Initialize empty tracker (no-op)."""
         pass
 
-    def get_callbacks(self) -> List[Any]:
+    def get_callbacks(self) -> list[any]:
         """Get callbacks for the trainer (empty list)."""
         return []
 

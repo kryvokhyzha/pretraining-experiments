@@ -1,11 +1,10 @@
 import math
-from typing import Dict
 
 import torch
 from transformers import EvalPrediction
 
 
-def compute_metrics_perplexity(eval_pred: EvalPrediction) -> Dict[str, float]:
+def compute_metrics_perplexity(eval_pred: EvalPrediction) -> dict[str, float]:
     """Compute perplexity from evaluation predictions.
 
     Args:

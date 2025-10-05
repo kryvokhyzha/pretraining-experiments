@@ -1,6 +1,5 @@
 import os
 from functools import partial
-from typing import Dict, Optional
 
 from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer
@@ -18,13 +17,13 @@ def prepare_dataset(
     tokenizer: AutoTokenizer,
     max_seq_length: int,
     num_proc: int,
-    n_train: Optional[int] = None,
-    n_val: Optional[int] = None,
-    n_test: Optional[int] = None,
+    n_train: int | None = None,
+    n_val: int | None = None,
+    n_test: int | None = None,
     text_column: str = "text",
     seed: int = 42,
     use_packing: bool = True,
-) -> Dict[str, Dataset]:
+) -> dict[str, Dataset]:
     """Load dataset either from local parquet file(s) or from HF dataset id.
 
     Expects dataset text column named by text_column parameter.
@@ -107,7 +106,7 @@ def prepare_dataset(
         return final_ds
 
 
-def _load_raw_dataset(path: str) -> Dict[str, Dataset]:
+def _load_raw_dataset(path: str) -> dict[str, Dataset]:
     """Load dataset from local parquet or HuggingFace hub."""
     if is_local_parquet(path=path):
         ds = load_dataset("parquet", data_files=path, split="train")
@@ -117,11 +116,11 @@ def _load_raw_dataset(path: str) -> Dict[str, Dataset]:
 
 
 def _create_train_eval_split(
-    ds: Dict[str, Dataset],
-    n_val: Optional[int],
-    n_test: Optional[int],
+    ds: dict[str, Dataset],
+    n_val: int | None,
+    n_test: int | None,
     seed: int,
-) -> Dict[str, Dataset]:
+) -> dict[str, Dataset]:
     """Create train/eval split from the train dataset."""
     if "train" not in ds:
         logger.warning("No 'train' split found in dataset. Returning dataset as-is.")
@@ -179,11 +178,11 @@ def _create_train_eval_split(
 
 
 def _limit_dataset_records(
-    ds: Dict[str, Dataset],
-    n_train: Optional[int],
-    n_val: Optional[int],
-    n_test: Optional[int],
-) -> Dict[str, Dataset]:
+    ds: dict[str, Dataset],
+    n_train: int | None,
+    n_val: int | None,
+    n_test: int | None,
+) -> dict[str, Dataset]:
     """Limit the number of records in each split."""
     limits = {
         "train": n_train,
@@ -205,11 +204,11 @@ def _limit_dataset_records(
 
 
 def _tokenize_datasets(
-    ds: Dict[str, Dataset],
+    ds: dict[str, Dataset],
     tokenizer: AutoTokenizer,
     text_column: str,
     num_proc: int,
-) -> Dict[str, Dataset]:
+) -> dict[str, Dataset]:
     """Tokenize all datasets splits and add EOS separator between documents.
 
     This tokenization step:
@@ -253,11 +252,11 @@ def _tokenize_datasets(
 
 
 def _group_texts(
-    examples: Dict[str, list],
+    examples: dict[str, list],
     max_seq_length: int,
     bos_token_id: int,
     eos_token_id: int,
-) -> Dict[str, list]:
+) -> dict[str, list]:
     """Concatenate all sequences into one long list and chunk into fixed-length blocks.
 
     This implements packing for efficient pretraining:
@@ -318,9 +317,9 @@ def _group_texts(
 
 
 def _truncate_sequences(
-    examples: Dict[str, list],
+    examples: dict[str, list],
     max_seq_length: int,
-) -> Dict[str, list]:
+) -> dict[str, list]:
     """Fallback truncation for when packing is disabled."""
     result = {}
     for k, sequences in examples.items():

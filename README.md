@@ -15,7 +15,7 @@
 
 This repository contains my personal **experiments with LLM pretraining**,
 specifically focused on pretraining **Gemma 3 270M** models on Ukrainian text
-data using the Kobza dataset.
+data using the Kobza and Malyuk datasets.
 
 ---
 

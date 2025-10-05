@@ -1,0 +1,9 @@
+defaults:
+  - _self_
+  - hydra: default
+  - model: gemma_3_270mb
+  - tokenizer@tokenizer_original: auto
+  - tokenizer@tokenizer_modified: tereshchenkoblue
+
+seed: 42
+path_to_freeze_ids: data/freeze_ids_gemma_tereshchenko.joblib

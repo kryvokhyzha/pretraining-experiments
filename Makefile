@@ -31,7 +31,7 @@ run_ids_prep:
 run_pretraining:
 	python scripts/python/002-gemma-pretraining.py data=kobza tokenizer=tereshchenkoblue
 run_test_pretraining:
-	python scripts/python/002-gemma-pretraining.py data=kobza_local pretraining=test tokenizer=tereshchenkoblue data_processing=test
+	python scripts/python/002-gemma-pretraining.py data=kobza_local pretraining=test tokenizer=tereshchenkoblue data_processing=test experiment_tracking=none
 run_inference:
 	python scripts/python/003-inference.py model=gemma_3_270mb tokenizer=auto
 

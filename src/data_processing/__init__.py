@@ -1,7 +1,6 @@
-from src.data_processing.dataset_processor import is_local_parquet, prepare_dataset
+from src.data_processing.dataset_processor import PretrainingDatasetProcessor
 
 
 __all__ = [
-    "is_local_parquet",
-    "prepare_dataset",
+    "PretrainingDatasetProcessor",
 ]

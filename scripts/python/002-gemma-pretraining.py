@@ -29,7 +29,7 @@ except ImportError:
 _ = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True, dotenv=False)
 load_dotenv(find_dotenv(), override=True)
 
-from src.data_processing import prepare_dataset
+from src.data_processing.dataset_processor import PretrainingDatasetProcessor
 from src.helper.display import DisplayConsole
 from src.helper.logging import logger
 from src.metrics import compute_metrics_perplexity
@@ -167,27 +167,29 @@ def main(cfg: DictConfig) -> None:
     # # If tokenizer extended (pad) we must resize token embeddings
     # model.resize_token_embeddings(len(tokenizer))
 
-    # Freeze specified token embeddings
     if cfg.get("path_to_freeze_ids", None) is not None:
         logger.info("Freezing specified token embeddings...")
         ids_to_freeze = joblib.load(cfg.path_to_freeze_ids)
         _ = model.get_input_embeddings().weight.register_hook(partial(_hook, ids=ids_to_freeze))
         logger.info(f"Number of frozen token embeddings: {len(ids_to_freeze)}")
 
-    # Prepare dataset
+    # Prepare dataset using the new class-based processor
     logger.info("Loading and tokenizing dataset...")
 
-    datasets = prepare_dataset(
-        path=cfg.data.path,
+    dataset_processor = PretrainingDatasetProcessor(
         tokenizer=tokenizer,
         max_seq_length=cfg.data_processing.max_seq_length,
+        text_column=cfg.data.text_column,
         num_proc=cfg.data_processing.num_proc,
+        use_packing=cfg.data_processing.use_packing,
+        seed=cfg.seed,
+    )
+
+    datasets = dataset_processor.prepare_dataset(
+        path=cfg.data.path,
         n_train=cfg.data_processing.n_train,
         n_val=cfg.data_processing.n_val,
         n_test=cfg.data_processing.n_test,
-        text_column=cfg.data.text_column,
-        seed=cfg.seed,
-        use_packing=cfg.data_processing.get("use_packing", True),
     )
 
     # Extract train and eval datasets
@@ -237,7 +239,7 @@ def main(cfg: DictConfig) -> None:
         eval_dataset=eval_dataset,
         data_collator=data_collator,
         callbacks=callbacks,
-        # compute_metrics=compute_metrics_perplexity,
+        compute_metrics=compute_metrics_perplexity,
     )
 
     # Run training

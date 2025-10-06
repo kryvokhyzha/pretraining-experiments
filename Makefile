@@ -34,3 +34,14 @@ run_test_pretraining:
 	python scripts/python/002-gemma-pretraining.py data=kobza_local pretraining=test tokenizer=tereshchenkoblue data_processing=test
 run_inference:
 	python scripts/python/003-inference.py model=gemma_3_270mb tokenizer=auto
+
+push_checkpoint:
+	@if [ -z "$(CHECKPOINT_DIR)" ]; then \
+		echo "Error: CHECKPOINT_DIR is required. Usage: make push_checkpoint CHECKPOINT_DIR=path/to/checkpoint HUB_MODEL_ID=username/model-name"; \
+		exit 1; \
+	fi
+	@if [ -z "$(HUB_MODEL_ID)" ]; then \
+		echo "Error: HUB_MODEL_ID is required. Usage: make push_checkpoint CHECKPOINT_DIR=path/to/checkpoint HUB_MODEL_ID=username/model-name"; \
+		exit 1; \
+	fi
+	huggingface-cli upload $(HUB_MODEL_ID) $(CHECKPOINT_DIR) --repo-type model

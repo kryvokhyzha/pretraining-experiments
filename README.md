@@ -6,7 +6,7 @@
 | Package    | [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3113/) |
 | Meta       | [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![GitHub License](https://img.shields.io/github/license/kryvokhyzha/pretraining-experiments)](https://github.com/kryvokhyzha/pretraining-experiments/blob/main/LICENSE) [![WandB](https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-gradient.svg)](https://wandb.ai/site)      |
 | Datasets       | [![Kobza Dataset](https://img.shields.io/badge/Kobza-dataset-blue?style=flat-square&logo=huggingface)](https://huggingface.co/datasets/Goader/kobza) [![Malyuk Dataset](https://img.shields.io/badge/Malyuk-dataset-blue?style=flat-square&logo=huggingface)](https://huggingface.co/datasets/lang-uk/malyuk)      |
-| Models       | [![Just one of the experiments](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-sm.svg)](https://huggingface.co/kryvokhyzha/pretraining-experiments-gemma-3-270mb-default)      |
+<!-- | Models       | [![Just one of the experiments](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-sm.svg)](https://huggingface.co/kryvokhyzha/pretraining-experiments-gemma-3-270mb-default)      | -->
 
 <!-- [![Just one of the experiments](https://img.shields.io/badge/gemma270m-model-blue?style=flat-square&logo=huggingface)](https://huggingface.co/kryvokhyzha/pretraining-experiments-gemma-3-270mb-default) -->
 

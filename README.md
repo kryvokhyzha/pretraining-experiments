@@ -202,3 +202,6 @@ python scripts/python/002-gemma-pretraining.py training.per_device_train_batch_s
 - [Packing Analysis: Packing Is More Appropriate for Large Models or Datasets in Supervised Fine-tuning](https://arxiv.org/html/2410.08081v2)
 - [Improving Continual Pre-training Through Seamless Data Packing](https://aclanthology.org/2025.findings-acl.777.pdf)
 - [Fewer Truncations Improve Language Modeling](https://arxiv.org/pdf/2404.10830)
+- [Gemma 3 Technical Report](https://www.youtube.com/watch?v=8qYto2NLdKI)
+- [Gemma 3 Paper Explanation](https://www.youtube.com/watch?v=AU21wwYIt9E)
+- [I pre-trained Gemma3 270M from scratch](https://www.youtube.com/watch?v=bLDlwcl6hbA)

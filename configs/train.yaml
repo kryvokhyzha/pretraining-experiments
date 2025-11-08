@@ -10,3 +10,4 @@ defaults:
 
 seed: 42
 path_to_freeze_ids: data/freeze_ids_gemma_tereshchenko.joblib
+freeze_lm_head: true

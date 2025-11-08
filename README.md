@@ -130,6 +130,9 @@ make run_pretraining          # Full experiment
    cd pretraining-experiments
    ```
 
+1. Install `uv` following the
+   [official documentation](https://docs.astral.sh/uv/getting-started/installation/).
+
 1. Create a virtual environment:
 
    ```bash
@@ -143,9 +146,6 @@ make run_pretraining          # Full experiment
    # Using venv
    source .venv/bin/activate
    ```
-
-1. Install `uv` following the
-   [official documentation](https://docs.astral.sh/uv/getting-started/installation/).
 
 1. Install dependencies:
 

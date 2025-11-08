@@ -1,5 +1,4 @@
 import os
-from functools import partial
 
 import hydra
 import joblib
@@ -33,6 +32,8 @@ from src.data_processing.dataset_processor import PretrainingDatasetProcessor
 from src.helper.display import DisplayConsole
 from src.helper.logging import logger
 from src.metrics import compute_metrics_perplexity
+from src.trainer.no_decay_embeddings_trainer import NoDecayEmbeddingsTrainer
+from src.trainer.utils import install_freeze_hooks
 
 
 # -------------------------
@@ -87,17 +88,6 @@ def create_training_arguments(
     logger.info(f"Setting output_dir: {output_dir}")
 
     return instantiate(training_config)
-
-
-def _hook(grad: torch.tensor, ids: torch.tensor) -> torch.Tensor | None:
-    if grad is None:
-        return None
-
-    # Make a copy of the gradient tensor to avoid in-place modification issues
-    # But probably this is not necessary
-    grad = grad.clone()
-    grad[ids] = 0
-    return grad
 
 
 # -------------------------
@@ -167,11 +157,23 @@ def main(cfg: DictConfig) -> None:
     # # If tokenizer extended (pad) we must resize token embeddings
     # model.resize_token_embeddings(len(tokenizer))
 
+    # Install freezing hooks if specified
+    use_custom_trainer = False
+
     if cfg.get("path_to_freeze_ids", None) is not None:
-        logger.info("Freezing specified token embeddings...")
+        logger.info("Setting up token embedding freezing...")
         ids_to_freeze = joblib.load(cfg.path_to_freeze_ids)
-        _ = model.get_input_embeddings().weight.register_hook(partial(_hook, ids=ids_to_freeze))
-        logger.info(f"Number of frozen token embeddings: {len(ids_to_freeze)}")
+
+        # Install gradient hooks to freeze specific embeddings
+        install_freeze_hooks(
+            model=model,
+            token_ids=ids_to_freeze,
+            include_lm_head=cfg.get("freeze_lm_head", True),
+        )
+
+        use_custom_trainer = True
+        logger.info(f"Freezing {len(ids_to_freeze)} token embeddings")
+        logger.info("Will use `NoDecayEmbeddingsTrainer` to disable weight decay on embeddings")
 
     # Prepare dataset using the new class-based processor
     logger.info("Loading and tokenizing dataset...")
@@ -232,7 +234,10 @@ def main(cfg: DictConfig) -> None:
             model.gradient_checkpointing = True
         model.config.use_cache = False
 
-    trainer = Trainer(
+    # Use custom trainer if we're freezing embeddings, otherwise use standard Trainer
+    trainer_class = NoDecayEmbeddingsTrainer if use_custom_trainer else Trainer
+
+    trainer = trainer_class(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
